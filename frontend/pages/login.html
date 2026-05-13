@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Login — Medix QR</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+  body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:2rem; }
+  .auth-box { width: 100%; max-width: 420px; }
+  .auth-logo { font-size: 1.5rem; font-weight: 800; color: var(--teal); text-align: center; margin-bottom: 0.3rem; }
+  .auth-logo span { color: var(--navy); }
+  .auth-tagline { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+  .divider { text-align: center; color: var(--muted); font-size: 0.82rem; margin: 1rem 0; }
+  .switch-link { text-align: center; font-size: 0.85rem; color: var(--text2); margin-top: 1.2rem; }
+  .switch-link a { color: var(--teal); font-weight: 700; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="auth-box">
+  <div class="auth-logo">Medix<span>QR</span></div>
+  <div class="auth-tagline">Welcome back — sign in to your account</div>
+
+  <div class="card">
+    <div id="alert" class="alert"></div>
+
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" class="form-control" placeholder="you@example.com"/>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" class="form-control" placeholder="••••••••"/>
+    </div>
+
+    <button class="btn btn-primary btn-full" id="login-btn" onclick="handleLogin()">
+      <span id="btn-text">Sign In</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+  </div>
+
+  <div class="switch-link">
+    Don't have an account? <a href="/pages/register.html">Register here</a>
+  </div>
+  <div class="switch-link mt-1">
+    <a href="/pages/index.html">← Back to Home</a>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  requireGuest();
+
+  async function handleLogin() {
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const btn      = document.getElementById('login-btn');
+    const spinner  = document.getElementById('spinner');
+    const btnText  = document.getElementById('btn-text');
+
+    if (!email || !password) {
+      return showAlert('alert', 'Please fill in all fields');
+    }
+
+    btn.disabled = true;
+    spinner.classList.add('show');
+    btnText.textContent = 'Signing in...';
+
+    try {
+      const data = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+      saveAuth(data.token, data.user);
+      window.location.href = '/pages/dashboard.html';
+    } catch (err) {
+      showAlert('alert', err.message);
+    } finally {
+      btn.disabled = false;
+      spinner.classList.remove('show');
+      btnText.textContent = 'Sign In';
+    }
+  }
+
+  // Allow Enter key
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+</script>
+</body>
+</html>

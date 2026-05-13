@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Medical Profile — Medix QR</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+  body { background: linear-gradient(135deg, #E8F9F7, #F0FEFE); min-height: 100vh; }
+  .scan-header {
+    background: var(--navy); color: white;
+    padding: 1.2rem 6%; display: flex; align-items: center; gap: 1rem;
+  }
+  .scan-header .logo { font-size: 1.2rem; font-weight: 800; color: white; }
+  .scan-header .logo span { color: var(--teal-light); }
+  .emergency-banner {
+    background: #A32D2D; color: white;
+    padding: 0.7rem 6%; text-align: center;
+    font-size: 0.85rem; font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .page { max-width: 680px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+  .profile-hero {
+    background: white; border-radius: 20px;
+    border: 1px solid var(--border); overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .profile-hero-top {
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    padding: 2rem; color: white;
+  }
+  .avatar-circle {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(255,255,255,0.2); border: 3px solid rgba(255,255,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem;
+  }
+  .profile-hero-top h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .profile-hero-top .meta { font-size: 0.85rem; opacity: 0.8; }
+  .profile-hero-body { padding: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+  .info-pill {
+    display: flex; flex-direction: column;
+    background: var(--off); border-radius: 12px;
+    padding: 0.8rem 1.2rem; flex: 1; min-width: 120px;
+  }
+  .info-pill .label { font-size: 0.7rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem; }
+  .info-pill .value { font-size: 0.95rem; font-weight: 700; color: var(--navy); }
+  .blood-pill { background: #FCEBEB; }
+  .blood-pill .value { color: #A32D2D; font-size: 1.2rem; }
+
+  .section-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.4rem; margin-bottom: 1rem; }
+  .section-card h4 { font-size: 0.82rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
+  .tags-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .empty-text { font-size: 0.85rem; color: var(--muted); font-style: italic; }
+
+  .ec-card {
+    background: #FCEBEB; border: 1px solid #F7C1C1;
+    border-radius: 16px; padding: 1.4rem; margin-bottom: 1rem;
+  }
+  .ec-card h4 { color: #A32D2D; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; }
+  .ec-name { font-size: 1rem; font-weight: 700; color: #791F1F; }
+  .ec-detail { font-size: 0.85rem; color: #A32D2D; margin-top: 0.3rem; }
+  .call-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: #A32D2D; color: white;
+    padding: 0.5rem 1.2rem; border-radius: 999px;
+    font-size: 0.82rem; font-weight: 700;
+    text-decoration: none; margin-top: 0.8rem;
+    transition: background 0.2s;
+  }
+  .call-btn:hover { background: #791F1F; }
+
+  .updated-note { text-align: center; font-size: 0.75rem; color: var(--muted); padding: 1rem; }
+  .loading { text-align: center; padding: 4rem; color: var(--muted); }
+  .error-state { text-align: center; padding: 4rem; }
+</style>
+</head>
+<body>
+
+<div class="scan-header">
+  <div class="logo">Medix<span>QR</span></div>
+  <span style="font-size:0.82rem; opacity:0.7;">Emergency Medical Profile</span>
+</div>
+<div class="emergency-banner">
+  🚨 EMERGENCY MEDICAL INFORMATION — For Authorized Healthcare Use Only
+</div>
+
+<div class="page">
+  <div id="loading" class="loading">
+    <div style="font-size:2rem; margin-bottom:1rem;">⏳</div>
+    Loading medical profile...
+  </div>
+  <div id="error-state" class="error-state" style="display:none;">
+    <div style="font-size:3rem; margin-bottom:1rem;">❌</div>
+    <h3 style="color:var(--navy); margin-bottom:0.5rem;">Profile Not Found</h3>
+    <p style="color:var(--muted); font-size:0.9rem;">This QR code does not have an associated medical profile.</p>
+  </div>
+  <div id="profile-content" style="display:none;"></div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const uid = params.get('uid');
+
+  if (!uid) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-state').style.display = 'block';
+  } else {
+    loadProfile(uid);
+  }
+
+  async function loadProfile(userId) {
+    try {
+      const data = await apiFetch(`/profile/view/${userId}`);
+      const p = data.profile;
+      renderProfile(p);
+    } catch {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error-state').style.display = 'block';
+    }
+  }
+
+  function tags(arr, danger = false) {
+    if (!arr || !arr.length) return '<span class="empty-text">None recorded</span>';
+    return arr.map(t => `<span class="tag ${danger ? 'tag-danger' : ''}">${t}</span>`).join('');
+  }
+
+  function renderProfile(p) {
+    const initials = (p.fullName || 'MQ').split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+    const dob = p.dateOfBirth ? new Date(p.dateOfBirth).toLocaleDateString('en-IN', { year:'numeric', month:'long', day:'numeric' }) : 'N/A';
+    const updated = new Date(p.lastUpdated).toLocaleString('en-IN');
+    const ecPhone = p.emergencyContact?.phone || '';
+
+    document.getElementById('profile-content').innerHTML = `
+      <div class="profile-hero">
+        <div class="profile-hero-top">
+          <div class="avatar-circle">${initials}</div>
+          <h2>${p.fullName}</h2>
+          <div class="meta">DOB: ${dob} &nbsp;|&nbsp; ${p.gender || 'N/A'} &nbsp;|&nbsp; ${p.phone || 'N/A'}</div>
+        </div>
+        <div class="profile-hero-body">
+          <div class="info-pill blood-pill">
+            <span class="label">Blood Group</span>
+            <span class="value">${p.bloodGroup || '?'}</span>
+          </div>
+          <div class="info-pill">
+            <span class="label">Conditions</span>
+            <span class="value">${(p.medicalConditions || []).length} recorded</span>
+          </div>
+          <div class="info-pill">
+            <span class="label">Allergies</span>
+            <span class="value">${(p.allergies || []).length} recorded</span>
+          </div>
+          <div class="info-pill">
+            <span class="label">Medications</span>
+            <span class="value">${(p.medications || []).length} active</span>
+          </div>
+        </div>
+      </div>
+
+      ${p.emergencyContact?.name ? `
+      <div class="ec-card">
+        <h4>🚨 Emergency Contact</h4>
+        <div class="ec-name">${p.emergencyContact.name}</div>
+        <div class="ec-detail">${p.emergencyContact.relationship || ''}</div>
+        ${ecPhone ? `<a href="tel:${ecPhone}" class="call-btn">📞 Call ${ecPhone}</a>` : ''}
+      </div>` : ''}
+
+      <div class="section-card">
+        <h4>⚠️ Allergies</h4>
+        <div class="tags-list">${tags(p.allergies, true)}</div>
+      </div>
+
+      <div class="section-card">
+        <h4>💊 Current Medications</h4>
+        <div class="tags-list">${tags(p.medications)}</div>
+      </div>
+
+      <div class="section-card">
+        <h4>🏥 Medical Conditions</h4>
+        <div class="tags-list">${tags(p.medicalConditions)}</div>
+      </div>
+
+      ${p.primaryDoctor?.name ? `
+      <div class="section-card">
+        <h4>👨‍⚕️ Primary Doctor</h4>
+        <div style="font-weight:700; color:var(--navy);">${p.primaryDoctor.name}</div>
+        <div style="font-size:0.85rem; color:var(--muted); margin-top:0.3rem;">${p.primaryDoctor.hospital || ''}</div>
+        ${p.primaryDoctor.phone ? `<a href="tel:${p.primaryDoctor.phone}" class="call-btn" style="background:var(--teal);">📞 ${p.primaryDoctor.phone}</a>` : ''}
+      </div>` : ''}
+
+      <div class="updated-note">Last updated: ${updated} &nbsp;|&nbsp; Powered by <strong>Medix QR</strong></div>
+    `;
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('profile-content').style.display = 'block';
+  }
+</script>
+</body>
+</html>

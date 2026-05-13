@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — Medix QR</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+  .page { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .welcome-banner {
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    border-radius: 18px; padding: 2rem 2.5rem; color: white;
+    margin-bottom: 2rem; position: relative; overflow: hidden;
+  }
+  .welcome-banner::after {
+    content: '⬡'; position: absolute; right: 2rem; top: 50%;
+    transform: translateY(-50%); font-size: 6rem; opacity: 0.08;
+  }
+  .welcome-banner h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.4rem; }
+  .welcome-banner p { font-size: 0.9rem; opacity: 0.8; }
+  .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .action-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: 16px; padding: 1.6rem;
+    text-decoration: none; color: var(--text);
+    display: flex; flex-direction: column; gap: 0.8rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .action-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(2,128,144,0.12); }
+  .action-icon { font-size: 2rem; }
+  .action-card h3 { font-size: 1rem; font-weight: 700; color: var(--navy); }
+  .action-card p { font-size: 0.82rem; color: var(--muted); }
+  .action-card .arrow { color: var(--teal); font-weight: 700; font-size: 0.85rem; margin-top: auto; }
+
+  .profile-status { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.6rem; margin-bottom: 1.5rem; }
+  .status-row { display: flex; align-items: center; justify-content: space-between; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 0.5rem; }
+  .dot-green { background: var(--success); }
+  .dot-orange { background: #EF9F27; }
+
+  @media (max-width: 600px) { .dashboard-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/pages/dashboard.html" class="nav-logo">Medix<span>QR</span></a>
+  <div class="nav-user">
+    <span class="nav-username" id="nav-username"></span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="welcome-banner">
+    <h2 id="welcome-name">Welcome back! 👋</h2>
+    <p>Manage your medical profile and QR code from your dashboard.</p>
+  </div>
+
+  <!-- Profile Status -->
+  <div class="profile-status" id="profile-status">
+    <div class="status-row">
+      <div>
+        <span class="status-dot dot-orange" id="status-dot"></span>
+        <span id="status-text" style="font-size:0.9rem; font-weight:600; color:var(--text2);">Checking profile...</span>
+      </div>
+      <a href="/pages/profile.html" class="btn btn-primary" style="padding:0.5rem 1.2rem; font-size:0.82rem;" id="profile-action-btn">
+        Create Profile
+      </a>
+    </div>
+  </div>
+
+  <!-- Action Cards -->
+  <div class="dashboard-grid">
+    <a class="action-card" href="/pages/profile.html">
+      <div class="action-icon">📋</div>
+      <h3>Medical Profile</h3>
+      <p>Add or update your medical history, allergies, medications, and emergency contacts.</p>
+      <span class="arrow">Edit Profile →</span>
+    </a>
+    <div class="action-card" onclick="generateQR()">
+      <div class="action-icon">📱</div>
+      <h3>My QR Code</h3>
+      <p>Generate and download your personalized medical QR code to carry at all times.</p>
+      <span class="arrow">Generate QR →</span>
+    </div>
+    <a class="action-card" href="/pages/scan.html">
+      <div class="action-icon">🔍</div>
+      <h3>Scan & View Profile</h3>
+      <p>Test how your profile looks when a healthcare provider scans your QR code.</p>
+      <span class="arrow">Preview →</span>
+    </a>
+    <div class="action-card" onclick="logout()">
+      <div class="action-icon">🚪</div>
+      <h3>Logout</h3>
+      <p>Securely sign out of your Medix QR account.</p>
+      <span class="arrow" style="color:var(--danger);">Sign Out →</span>
+    </div>
+  </div>
+
+  <!-- QR Display Area -->
+  <div id="qr-section" class="card text-center" style="display:none;">
+    <div class="section-label">Your QR Code</div>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1.2rem;">
+      Show this to any healthcare provider or save it to your phone
+    </p>
+    <img id="qr-img" src="" alt="QR Code" style="width:220px; height:220px; border-radius:12px; border:3px solid var(--border);"/>
+    <div class="mt-2">
+      <button class="btn btn-primary" onclick="downloadQR()">⬇ Download QR Code</button>
+    </div>
+    <p style="font-size:0.75rem; color:var(--muted); margin-top:0.8rem;">
+      Keep this QR code on your phone or print it on your ID card
+    </p>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  requireAuth();
+  renderNavUser();
+
+  const user = getUser();
+  if (user) document.getElementById('welcome-name').textContent = `Welcome back, ${user.name}! 👋`;
+
+  // Check if profile exists
+  (async () => {
+    try {
+      await apiFetch('/profile');
+      document.getElementById('status-dot').className = 'status-dot dot-green';
+      document.getElementById('status-text').textContent = 'Medical profile is complete ✓';
+      document.getElementById('profile-action-btn').textContent = 'Edit Profile';
+    } catch {
+      document.getElementById('status-text').textContent = 'Medical profile not created yet';
+    }
+  })();
+
+  async function generateQR() {
+    try {
+      const data = await apiFetch('/qr/generate');
+      document.getElementById('qr-img').src = data.qrCode;
+      document.getElementById('qr-section').style.display = 'block';
+      document.getElementById('qr-section').scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  function downloadQR() {
+    const img = document.getElementById('qr-img').src;
+    const a = document.createElement('a');
+    a.href = img;
+    a.download = 'medixqr-code.png';
+    a.click();
+  }
+</script>
+</body>
+</html>

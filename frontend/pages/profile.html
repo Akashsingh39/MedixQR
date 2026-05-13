@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Medical Profile — Medix QR</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+  .page { max-width: 760px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-size: 1.7rem; font-weight: 800; color: var(--navy); }
+  .page-header p { color: var(--muted); font-size: 0.88rem; margin-top: 0.3rem; }
+  .section-card { background: white; border: 1px solid var(--border); border-radius: 18px; padding: 1.8rem; margin-bottom: 1.5rem; }
+  .section-card h3 { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
+  select.form-control { cursor: pointer; }
+  .tag-input-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; border: 1px solid var(--border); border-radius: 10px; padding: 0.5rem; background: white; min-height: 44px; align-items: center; cursor: text; }
+  .tag-input-wrap:focus-within { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(2,128,144,0.12); }
+  .tag-chip { background: var(--teal-bg); color: var(--teal-dark); border-radius: 999px; padding: 0.2rem 0.7rem; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; }
+  .tag-chip button { background: none; border: none; cursor: pointer; color: var(--teal); font-size: 0.9rem; line-height: 1; padding: 0; }
+  .tag-input { border: none; outline: none; font-family: 'Sora', sans-serif; font-size: 0.85rem; flex: 1; min-width: 120px; background: transparent; }
+  .hint { font-size: 0.74rem; color: var(--muted); margin-top: 0.3rem; }
+  .sticky-save { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/pages/dashboard.html" class="nav-logo">Medix<span>QR</span></a>
+  <div class="nav-user">
+    <span class="nav-username" id="nav-username"></span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="section-label">Medical Profile</div>
+    <h1>Your Health Information</h1>
+    <p>This information will be accessible when your QR code is scanned in an emergency.</p>
+  </div>
+
+  <div id="alert" class="alert"></div>
+
+  <!-- Personal Info -->
+  <div class="section-card">
+    <h3>👤 Personal Information</h3>
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="fullName" class="form-control" placeholder="Akash Singh"/>
+      </div>
+      <div class="form-group">
+        <label>Date of Birth</label>
+        <input type="date" id="dateOfBirth" class="form-control"/>
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="gender" class="form-control">
+          <option value="">Select...</option>
+          <option>Male</option><option>Female</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Blood Group</label>
+        <select id="bloodGroup" class="form-control">
+          <option value="">Unknown</option>
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="phone" class="form-control" placeholder="+91 98765 43210"/>
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" id="address" class="form-control" placeholder="City, State"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medical Info -->
+  <div class="section-card">
+    <h3>🏥 Medical Information</h3>
+
+    <div class="form-group">
+      <label>Allergies</label>
+      <div class="tag-input-wrap" id="allergies-wrap" onclick="document.getElementById('allergy-input').focus()">
+        <input type="text" id="allergy-input" class="tag-input" placeholder="Type and press Enter..."/>
+      </div>
+      <div class="hint">e.g. Penicillin, Peanuts, Dust</div>
+    </div>
+
+    <div class="form-group">
+      <label>Current Medications</label>
+      <div class="tag-input-wrap" id="medications-wrap" onclick="document.getElementById('med-input').focus()">
+        <input type="text" id="med-input" class="tag-input" placeholder="Type and press Enter..."/>
+      </div>
+      <div class="hint">e.g. Metformin 500mg, Aspirin</div>
+    </div>
+
+    <div class="form-group">
+      <label>Medical Conditions</label>
+      <div class="tag-input-wrap" id="conditions-wrap" onclick="document.getElementById('cond-input').focus()">
+        <input type="text" id="cond-input" class="tag-input" placeholder="Type and press Enter..."/>
+      </div>
+      <div class="hint">e.g. Diabetes Type 2, Hypertension</div>
+    </div>
+
+    <div class="form-group">
+      <label>Past Surgeries</label>
+      <div class="tag-input-wrap" id="surgeries-wrap" onclick="document.getElementById('surg-input').focus()">
+        <input type="text" id="surg-input" class="tag-input" placeholder="Type and press Enter..."/>
+      </div>
+      <div class="hint">e.g. Appendectomy 2019</div>
+    </div>
+
+    <div class="form-group">
+      <label>Vaccinations</label>
+      <div class="tag-input-wrap" id="vaccinations-wrap" onclick="document.getElementById('vacc-input').focus()">
+        <input type="text" id="vacc-input" class="tag-input" placeholder="Type and press Enter..."/>
+      </div>
+      <div class="hint">e.g. COVID-19, Hepatitis B, Tetanus</div>
+    </div>
+  </div>
+
+  <!-- Emergency Contact -->
+  <div class="section-card">
+    <h3>🚨 Emergency Contact</h3>
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Contact Name</label>
+        <input type="text" id="ec-name" class="form-control" placeholder="Parent / Spouse Name"/>
+      </div>
+      <div class="form-group">
+        <label>Relationship</label>
+        <input type="text" id="ec-rel" class="form-control" placeholder="Father, Mother, Spouse..."/>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="ec-phone" class="form-control" placeholder="+91 98765 43210"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doctor Info -->
+  <div class="section-card">
+    <h3>👨‍⚕️ Primary Doctor</h3>
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Doctor Name</label>
+        <input type="text" id="doc-name" class="form-control" placeholder="Dr. Sharma"/>
+      </div>
+      <div class="form-group">
+        <label>Hospital</label>
+        <input type="text" id="doc-hospital" class="form-control" placeholder="City Hospital"/>
+      </div>
+      <div class="form-group">
+        <label>Doctor Phone</label>
+        <input type="tel" id="doc-phone" class="form-control" placeholder="+91 98765 43210"/>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-full" id="save-btn" onclick="saveProfile()">
+    <span id="save-text">Save Medical Profile</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  requireAuth();
+  renderNavUser();
+
+  // ── Tag Input System ──────────────────────────────────────
+  const tagData = { allergies: [], medications: [], medicalConditions: [], surgeries: [], vaccinations: [] };
+  const tagMap = {
+    'allergy-input': { key: 'allergies', wrap: 'allergies-wrap' },
+    'med-input':     { key: 'medications', wrap: 'medications-wrap' },
+    'cond-input':    { key: 'medicalConditions', wrap: 'conditions-wrap' },
+    'surg-input':    { key: 'surgeries', wrap: 'surgeries-wrap' },
+    'vacc-input':    { key: 'vaccinations', wrap: 'vaccinations-wrap' }
+  };
+
+  Object.entries(tagMap).forEach(([inputId, config]) => {
+    document.getElementById(inputId).addEventListener('keydown', function(e) {
+      if ((e.key === 'Enter' || e.key === ',') && this.value.trim()) {
+        e.preventDefault();
+        addTag(config.key, config.wrap, this.value.trim());
+        this.value = '';
+      }
+    });
+  });
+
+  function addTag(key, wrapId, value) {
+    if (!value || tagData[key].includes(value)) return;
+    tagData[key].push(value);
+    renderTags(key, wrapId);
+  }
+
+  function removeTag(key, wrapId, value) {
+    tagData[key] = tagData[key].filter(v => v !== value);
+    renderTags(key, wrapId);
+  }
+
+  function renderTags(key, wrapId) {
+    const wrap = document.getElementById(wrapId);
+    const input = wrap.querySelector('input');
+    wrap.querySelectorAll('.tag-chip').forEach(t => t.remove());
+    tagData[key].forEach(val => {
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.innerHTML = `${val} <button onclick="removeTag('${key}','${wrapId}','${val}')">×</button>`;
+      wrap.insertBefore(chip, input);
+    });
+  }
+
+  // ── Load Existing Profile ─────────────────────────────────
+  (async () => {
+    try {
+      const data = await apiFetch('/profile');
+      const p = data.profile;
+      document.getElementById('fullName').value    = p.fullName || '';
+      document.getElementById('dateOfBirth').value = p.dateOfBirth || '';
+      document.getElementById('gender').value      = p.gender || '';
+      document.getElementById('bloodGroup').value  = p.bloodGroup || '';
+      document.getElementById('phone').value       = p.phone || '';
+      document.getElementById('address').value     = p.address || '';
+      if (p.emergencyContact) {
+        document.getElementById('ec-name').value  = p.emergencyContact.name || '';
+        document.getElementById('ec-rel').value   = p.emergencyContact.relationship || '';
+        document.getElementById('ec-phone').value = p.emergencyContact.phone || '';
+      }
+      if (p.primaryDoctor) {
+        document.getElementById('doc-name').value     = p.primaryDoctor.name || '';
+        document.getElementById('doc-hospital').value = p.primaryDoctor.hospital || '';
+        document.getElementById('doc-phone').value    = p.primaryDoctor.phone || '';
+      }
+      // Load tag data
+      ['allergies', 'medications', 'medicalConditions', 'surgeries', 'vaccinations'].forEach(key => {
+        const wrapMap = { allergies:'allergies-wrap', medications:'medications-wrap', medicalConditions:'conditions-wrap', surgeries:'surgeries-wrap', vaccinations:'vaccinations-wrap' };
+        (p[key] || []).forEach(v => addTag(key, wrapMap[key], v));
+      });
+    } catch { /* no profile yet */ }
+  })();
+
+  // ── Save Profile ──────────────────────────────────────────
+  async function saveProfile() {
+    const btn = document.getElementById('save-btn');
+    const spinner = document.getElementById('spinner');
+    const saveText = document.getElementById('save-text');
+
+    const fullName = document.getElementById('fullName').value.trim();
+    if (!fullName) return showAlert('alert', 'Full name is required');
+
+    btn.disabled = true; spinner.classList.add('show'); saveText.textContent = 'Saving...';
+
+    const payload = {
+      fullName,
+      dateOfBirth: document.getElementById('dateOfBirth').value,
+      gender:      document.getElementById('gender').value,
+      bloodGroup:  document.getElementById('bloodGroup').value,
+      phone:       document.getElementById('phone').value.trim(),
+      address:     document.getElementById('address').value.trim(),
+      allergies:         tagData.allergies,
+      medications:       tagData.medications,
+      medicalConditions: tagData.medicalConditions,
+      surgeries:         tagData.surgeries,
+      vaccinations:      tagData.vaccinations,
+      emergencyContact: {
+        name:         document.getElementById('ec-name').value.trim(),
+        relationship: document.getElementById('ec-rel').value.trim(),
+        phone:        document.getElementById('ec-phone').value.trim()
+      },
+      primaryDoctor: {
+        name:     document.getElementById('doc-name').value.trim(),
+        hospital: document.getElementById('doc-hospital').value.trim(),
+        phone:    document.getElementById('doc-phone').value.trim()
+      }
+    };
+
+    try {
+      await apiFetch('/profile', { method: 'POST', body: JSON.stringify(payload) });
+      showAlert('alert', 'Profile saved successfully! ✓', 'success');
+      setTimeout(() => window.location.href = '/pages/dashboard.html', 1500);
+    } catch (err) {
+      showAlert('alert', err.message);
+    } finally {
+      btn.disabled = false; spinner.classList.remove('show'); saveText.textContent = 'Save Medical Profile';
+    }
+  }
+</script>
+</body>
+</html>
