@@ -1,56 +1,171 @@
-# 🏥 Medix QR — Full Stack App
-Stack: Node.js + Express + MongoDB + HTML/CSS/JS
-Port: 3000
+# 🏥 Medix QR — Full Stack Application
 
-## ✅ Setup Steps (Mac)
+A healthcare-based QR management system built using **Node.js, Express.js, MongoDB, HTML, CSS, and JavaScript**.
 
-### Step 1 — MongoDB Start karo
-Terminal mein:
-  mongod
-Agar error aaye:
-  brew services start mongodb-community
+## 🚀 Tech Stack
 
-### Step 2 — VS Code mein open karo
-  File → Open Folder → medixqr folder select karo
-
-### Step 3 — Backend folder mein jao
-VS Code terminal (Ctrl+`) mein:
-  cd backend
-
-### Step 4 — Install karo (sirf pehli baar)
-  npm install
-
-### Step 5 — App run karo
-  npm run dev
-
-Terminal mein dikhega:
-  ✅ MongoDB Connected
-  🚀 Medix QR running at: http://localhost:3000
-
-### Step 6 — Browser mein kholo
-  http://localhost:3000/pages/index.html
+- **Backend:** Node.js, Express.js
+- **Database:** MongoDB
+- **Frontend:** HTML, CSS, JavaScript
+- **Authentication:** JWT
+- **Port:** 3000
 
 ---
 
-## ⚠️ Common Errors
+# ✅ Setup Guide (Mac)
 
-Port 3000 busy hai:
-  kill -9 $(lsof -ti :3000)
-  npm run dev
+## Step 1 — Start MongoDB
 
-Galat folder mein ho:
-  cd backend
-  npm run dev
+Open Terminal and run:
+bash
+mongod
 
-MongoDB connect nahi hua:
-  mongod
+
+If you get an error, run:
+
+bash
+brew services start mongodb-community
 
 ---
 
-## API Endpoints
+## Step 2 — Open Project in VS Code
+
+1. Open **VS Code**
+2. Go to **File → Open Folder**
+3. Select the **medixqr** project folder
+
+---
+
+## Step 3 — Navigate to Backend Folder
+
+Open terminal in VS Code (`Ctrl + \``) and run:
+
+bash
+cd backend
+
+---
+
+## Step 4 — Install Dependencies
+
+Run this command (only first time):
+
+bash
+npm install
+
+
+---
+
+## Step 5 — Start the Application
+
+Run:
+
+bash
+npm run dev
+
+
+You should see:
+
+text
+✅ MongoDB Connected
+🚀 Medix QR running at: http://localhost:3000
+📄 Open: http://localhost:3000/pages/index.html
+
+---
+
+## Step 6 — Open in Browser
+
+Open:
+
+text
+http://localhost:3000/pages/index.html
+
+
+---
+
+# ⚠️ Common Errors & Fixes
+
+## Port 3000 Already in Use
+
+Run:
+
+bash
+kill -9 $(lsof -ti :3000)
+npm run dev
+
+
+---
+
+## Wrong Folder Error
+
+Make sure you are inside the backend folder:
+
+bash
+cd backend
+npm run dev
+
+
+## MongoDB Not Connected
+
+Run:
+
+bash
+mongod
+
+
+Or:
+
+bash
+brew services start mongodb-community
+
+---
+
+# 🔗 API Endpoints
+
+## Authentication APIs
+
+```http
 POST /api/auth/register
 POST /api/auth/login
+```
+
+## Profile APIs
+
+http
 GET  /api/profile
 POST /api/profile
 GET  /api/profile/view/:userId
-GET  /api/qr/generate
+
+
+## QR Code APIs
+
+http
+GET /api/qr/generate
+
+
+---
+
+# 📂 Project Structure
+
+text
+medixqr/
+│── backend/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   ├── server.js
+│   └── .env
+│
+│── frontend/
+│   ├── pages/
+│   ├── css/
+│   ├── js/
+│
+└── README.md
+
+---
+
+# 🌐 Local Development URL
+
+text
+http://localhost:3000
+
